@@ -1,3 +1,5 @@
+#!/bin/python
+
 import subprocess as sbp
 import sys
 import time
@@ -91,7 +93,7 @@ def main():
         with tmp.NamedTemporaryFile() as f:
             # f, fn = tmp.mkstemp()
             img.save(f.name, format='png')
-            sbp.run(['feh', '--bg-tile', f.name])
+            sbp.run(['feh', '--bg-center', f.name])
 
         if wait is None:
             return
