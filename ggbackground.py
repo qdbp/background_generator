@@ -1,6 +1,9 @@
+import subprocess as sbp
 import sys
-import numpy as np
+import time
+import tempfile as tmp
 
+import numpy as np
 from PIL import Image
 
 def gray_rotor(rate):
@@ -40,30 +43,6 @@ def woven_outp(l, ndim, dg_from_b, pack=True, **kwargs):
         return out
 
 
-def dg_from_b_append(l, ndim, bit):
-    dim = bit // l
-    gix = bit % l
-    return (dim, gix)
-
-
-def dg_from_b_append_rd(l, ndim, bit):
-    dim = ndim - bit // l - 1
-    gix = bit % l
-    return (dim, gix)
-
-
-def dg_from_b_append_rg(l, ndim, bit):
-    dim = (bit // 2) % ndim
-    gix = l - bit % l - 1
-    return (dim, gix)
-
-
-def dg_from_b_append_rdg(l, ndim, bit):
-    dim = ndim - bit // l - 1
-    gix = l - bit % l - 1
-    return (dim, gix)
-
-
 def dg_pseudo_hadamard(l, ndim, bit, c2h_skip=3, c2h_seg_len=8, primacy=[0, 1, 2],
                        random=False):
     '''
@@ -85,7 +64,6 @@ def dg_pseudo_hadamard(l, ndim, bit, c2h_skip=3, c2h_seg_len=8, primacy=[0, 1, 2
         col_to_hada = {}
         for px, p in enumerate(primacy):
             col_to_hada.update({i + c2h_seg_len*px: c2h_skip*i + p for i in range(c2h_seg_len)})
-        print(col_to_hada)
     else:
         perm = np.random.permutation(l*ndim)
         col_to_hada = {i: perm[i] for i in range(l*ndim)}
@@ -93,24 +71,33 @@ def dg_pseudo_hadamard(l, ndim, bit, c2h_skip=3, c2h_seg_len=8, primacy=[0, 1, 2
     hada_bit = col_to_hada[bit]
     nix = hada_bit - l*ndim
     dim = nix % ndim
-    # gix = nix // ndim + 1
     gix = l - hada_bit // ndim - 1
-
-    print(bit, hada_bit, nix)
-    print(dim, gix)
 
     return (dim, gix)
 
-for i in range(100):
-    print(i)
-    out = woven_outp(12, 2, dg_pseudo_hadamard, pack=True, random=True)
-    
-    img = Image.fromarray(out, mode='RGB')
-    img.save('test_random_{}.png'.format(i))
 
-# primacies = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]]
-# for px, pr in enumerate(primacies):
-#     out = woven_outp(12, 2, dg_pseudo_hadamard, pack=True,
-#                      primacy=pr)
-#     img = Image.fromarray(out, mode='HSV')
-#     img.save('test6_{}.png'.format(px))
+def main():
+
+    try:
+        wait = float(sys.argv[1])
+        assert wait > 0
+    except (ValueError, IndexError, AssertionError):
+        wait = None
+
+    while True:
+        out = woven_outp(12, 2, dg_pseudo_hadamard, pack=True, random=True)
+        img = Image.fromarray(out, mode='RGB')
+
+        with tmp.NamedTemporaryFile() as f:
+            # f, fn = tmp.mkstemp()
+            img.save(f.name, format='png')
+            sbp.run(['feh', '--bg-tile', f.name])
+
+        if wait is None:
+            return
+        else:
+            time.sleep(wait)
+
+
+if __name__ == '__main__':
+    main()
