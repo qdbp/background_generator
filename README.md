@@ -1,6 +1,6 @@
-# background_generator
+# ggbackground
 
-## generate pretty desktop background with 2D gray codes
+## generate pretty desktop background with 2D Gray codes
 
 ### fun facts about the images:
 - each colour (i.e. (r, g, b) triple) appears exactly once in each image (yes, in every single one!)
