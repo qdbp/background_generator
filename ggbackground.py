@@ -46,7 +46,7 @@ def woven_outp(l, ndim, dg_from_b, pack=True, **kwargs):
 
 
 def dg_pseudo_hadamard(l, ndim, bit, c2h_skip=3, c2h_seg_len=8, primacy=[0, 1, 2],
-                       random=False):
+                       random=False, raw_hada=False):
     '''
     as in the original graygrid
     '''
@@ -59,16 +59,17 @@ def dg_pseudo_hadamard(l, ndim, bit, c2h_skip=3, c2h_seg_len=8, primacy=[0, 1, 2
     # effectively inverting the get_sample table of the original graygrid
     # (which took the hadamard bits and extracted the colour triple)
  
-    assert c2h_skip * c2h_seg_len == l*ndim
-    assert len(primacy) == c2h_skip
-
-    if not random:
+    if raw_hada:
+        col_to_hada = {i: i for i in range(l*ndim)}
+    elif random:
+        perm = np.random.permutation(l*ndim)
+        col_to_hada = {i: perm[i] for i in range(l*ndim)}
+    else:
+        assert c2h_skip * c2h_seg_len == l*ndim
+        assert len(primacy) == c2h_skip
         col_to_hada = {}
         for px, p in enumerate(primacy):
             col_to_hada.update({i + c2h_seg_len*px: c2h_skip*i + p for i in range(c2h_seg_len)})
-    else:
-        perm = np.random.permutation(l*ndim)
-        col_to_hada = {i: perm[i] for i in range(l*ndim)}
 
     hada_bit = col_to_hada[bit]
     nix = hada_bit - l*ndim
@@ -93,7 +94,7 @@ def main():
         with tmp.NamedTemporaryFile() as f:
             # f, fn = tmp.mkstemp()
             img.save(f.name, format='png')
-            sbp.run(['feh', '--bg-center', f.name])
+            sbp.run(['feh', '--bg-tile', f.name])
 
         if wait is None:
             return
@@ -101,5 +102,11 @@ def main():
             time.sleep(wait)
 
 
+def test():
+    out = woven_outp(8, 2, dg_pseudo_hadamard, pack=True, raw_hada=True)
+    print(out)
+
+
 if __name__ == '__main__':
+    # test()
     main()
