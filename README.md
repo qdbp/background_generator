@@ -5,7 +5,9 @@
 ### fun facts about the images:
 - each colour (i.e. (r, g, b) triple) appears exactly once in each image (yes, in every single one!)
 - each pixel differs from its four neighbours by exactly one bit (the Gray property)
-- the Gray property is cyclic, so tiling the images creates a flawless periodic pattern
+- the Gray property is cyclic, so tiling the images creates a flawless periodic pattern*
+
+*the images must be reflected across the tiling joints for the pattern to emerge. reflecting software not included.
 
 ### requirements and configuration
 
