@@ -6,6 +6,7 @@ import time
 import tempfile as tmp
 
 import numpy as np
+import numpy.random as npr
 from PIL import Image
 
 def gray_rotor(rate):
@@ -26,7 +27,7 @@ def gray_engine(l):
         i += 1
 
 
-def woven_outp(l, ndim, dg_from_b, pack=True, **kwargs):
+def woven_outp(l, ndim, dg_from_b, pack=True, random_flip=False, **kwargs):
     dim = [2**l for _ in range(ndim)] + [l*ndim]
     out = np.zeros(l*ndim*(2**l)**ndim, dtype=np.uint8).reshape(tuple(dim))
 
@@ -38,6 +39,10 @@ def woven_outp(l, ndim, dg_from_b, pack=True, **kwargs):
         broadcast_slice = [np.newaxis for _ in range(ndim)]
         broadcast_slice[dim] = slice(None, None)
         out[..., bit] = grays[:, gix][tuple(broadcast_slice)]
+
+    if random_flip:
+        for bit in range(l*ndim):
+            out[..., bit] = out[..., bit] if npr.random() > 0.5 else 1 - out[..., bit]
 
     if pack:
         return np.packbits(out, axis=-1)
@@ -88,7 +93,8 @@ def main():
         wait = None
 
     while True:
-        out = woven_outp(12, 2, dg_pseudo_hadamard, pack=True, random=True)
+        out = woven_outp(12, 2, dg_pseudo_hadamard, pack=True, random=True,
+                         random_flip=True)
         img = Image.fromarray(out, mode='RGB')
 
         with tmp.NamedTemporaryFile() as f:
